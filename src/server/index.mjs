@@ -8,6 +8,7 @@ const app = express();
 let peopleNum = 0; // 在线人数
 let userList = []; // 用户列表
 let avatarList = [...Array(50).keys()].map(item => item + 1); // 可选头像列表
+let messageList = []; // 消息信息
 
 // send方法
 const send = (ws, data) => {
@@ -19,16 +20,44 @@ const rendomArr = (arr) => {
   return arr.splice(Math.floor(Math.random() * arr.length), 1);
 }
 
-// 广播在线人数
-const updatePeopleNum = () => {
+// 广播
+const broadcast = (data) => {
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      send(client, {
-        type: 10,
-        data: { peopleNum },
-        code: 0,
-      });
+      send(client, data);
     }
+  });
+}
+
+// 广播在线人数
+const updatePeopleNum = () => {
+  broadcast({
+    type: 10,
+    data: { peopleNum },
+    code: 0,
+  });
+}
+
+// 广播用户人数
+const updateUserList = () => {
+  broadcast({
+    type: 11,
+    data: userList,
+    code: 0,
+  });
+}
+
+// 广播消息列表
+const updateMessageList = (data, userInfo) => {
+  broadcast({
+    type: 12,
+    data: data.map(item => {
+      if (!['myMsg', 'otherMsg'].includes(item.type)) return item;
+      return item.id === userInfo.id
+        ? { ...item, type: 'myMsg' }
+        : { ...item, type: 'otherMsg' };
+    }),
+    code: 0,
   });
 }
 
@@ -67,6 +96,28 @@ const addUser = (ws, data) => {
   });
 
   userList.push(userInfo);
+  updateUserList();
+
+  messageList.push({
+    type: 'info',
+    id: userInfo.id,
+    content: '进入群聊',
+    userName: userInfo.name,
+    time: new Date().getTime(),
+  });
+  updateMessageList(messageList, userInfo);
+}
+
+// 客户端向服务端发送消息
+const sendMessage = (ws, data) => {
+  messageList.push({
+    type: 'myMsg',
+    id: data.id,
+    content: data.content,
+    userName: data.userName,
+    time: new Date().getTime(),
+  });
+  updateMessageList(messageList, data);
 }
 
 wss.on('open', () => {
@@ -90,6 +141,9 @@ wss.on('connection', (ws) => {
         break;
       case 'ADD_USER':
         addUser(ws, data);
+        break;
+      case 'SEND_MESSAGE':
+        sendMessage(ws, data);
         break;
     }
   });

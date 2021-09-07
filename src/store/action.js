@@ -11,3 +11,17 @@ export const updatePeopleNum = peopleNum => {
     peopleNum,
   }
 }
+
+export const updateUserList = userList => {
+  return {
+    type: 'UPDATE_USER_LIST',
+    userList,
+  }
+}
+
+export const updateMessageList = messageList => {
+  return {
+    type: 'UPDATE_MESSAGE_LIST',
+    messageList,
+  }
+}

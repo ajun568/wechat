@@ -8,4 +8,7 @@ export const TypeMap = {
   4: 'USER_INFO', // 用户信息
 
   10: 'UPDATE_PEOPLE_NUM', // 更新在线人数
+  11: 'UPDATE_USER_LIST', // 更新用户列表
+  12: 'UPDATE_MESSAGE_LIST', // 更新消息列表
+  13: 'SEND_MESSAGE', // 客户端向服务端发送消息
 }

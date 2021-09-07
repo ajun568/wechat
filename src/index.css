@@ -292,9 +292,12 @@ textarea::placeholder {
   display: inline-block;
   text-align: left;
   font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 .content.my-content {
   background: #78cdf8;
+  float: right;
 }
 
 .triangle {
@@ -327,6 +330,11 @@ textarea::placeholder {
 }
 .tl {
   text-align: left;
+}
+.user-list {
+  height: 550px;
+  overflow: auto;
+  box-sizing: border-box;
 }
 
 
@@ -365,5 +373,39 @@ textarea::placeholder {
   }
   20%, 40%, 60%, 80% {
     transform: translateX(10px);
+  }
+}
+
+
+/* emoji */
+.emoji-mart-bar, .emoji-mart-search, .emoji-mart-category-label {
+  display: none;
+}
+.emoji-mart {
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
+  padding: 5px 0;
+}
+
+.emoji-mart::before, .emoji-mart::after {
+  content: '';
+  position: absolute;
+  border-bottom: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-left: 10px solid transparent;
+  border-top: 12px solid #fff;
+  bottom: -22px;
+  left: 55px;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, .2));
+}
+
+@media
+not screen and (-webkit-min-device-pixel-ratio: 2),
+not screen and (min--moz-device-pixel-ratio: 2),
+not screen and (-o-min-device-pixel-ratio: 2/1),
+not screen and (min-device-pixel-ratio: 2),
+not screen and (min-resolution: 192dpi),
+not screen and (min-resolution: 2dppx) {
+  .emoji {
+    margin: 0 5px 0 0;
   }
 }

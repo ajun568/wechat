@@ -25,6 +25,12 @@ class Ws {
         case 'UPDATE_PEOPLE_NUM':
           updatePeopleNum(data);
           break;
+        case 'UPDATE_USER_LIST':
+          updateUserList(data);
+          break;
+        case 'UPDATE_MESSAGE_LIST':
+          updateMEssageList(data);
+          break;
       }
     }
 
@@ -49,6 +55,7 @@ class Ws {
   }
 }
 
+// 获取当前用户信息
 const getUserInfo = (data) => {
   if (data.code !== 0) {
     const times = store.getState().userInfo?.times;
@@ -64,10 +71,27 @@ const getUserInfo = (data) => {
   }
 }
 
+// 更新在线人数
 const updatePeopleNum = (data) => {
   store.dispatch({
     type: 'UPDATE_PEOPLE_NUM',
     peopleNum: data.data.peopleNum,
+  });
+}
+
+// 更新成员列表
+const updateUserList = (data) => {
+  store.dispatch({
+    type: 'UPDATE_USER_LIST',
+    userList: data.data,
+  });
+}
+
+// 更新消息列表
+const updateMEssageList = (data) => {
+  store.dispatch({
+    type: 'UPDATE_MESSAGE_LIST',
+    messageList: data.data,
   });
 }
 

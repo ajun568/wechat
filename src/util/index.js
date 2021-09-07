@@ -8,6 +8,9 @@ const Type = {
   4: 'USER_INFO',
 
   10: 'UPDATE_PEOPLE_NUM',
+  11: 'UPDATE_USER_LIST',
+  12: 'UPDATE_MESSAGE_LIST',
+  13: 'SEND_MESSAGE',
 };
 
 export class TypeMap extends Map {
