@@ -104,6 +104,7 @@ const addUser = (ws, data) => {
     content: '进入群聊',
     userName: userInfo.name,
     time: new Date().getTime(),
+    messageType: 'content',
   });
   updateMessageList(messageList, userInfo);
 }
@@ -116,6 +117,7 @@ const sendMessage = (ws, data) => {
     content: data.content,
     userName: data.userName,
     time: new Date().getTime(),
+    messageType: data.messageType,
   });
   updateMessageList(messageList, data);
 }

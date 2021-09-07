@@ -33,9 +33,9 @@ textarea::placeholder {
 
 @font-face {
   font-family: 'iconfont';  /* Project id 1930322 */
-  src: url('//at.alicdn.com/t/font_1930322_v14tf5qc6l.woff2?t=1630749075649') format('woff2'),
-       url('//at.alicdn.com/t/font_1930322_v14tf5qc6l.woff?t=1630749075649') format('woff'),
-       url('//at.alicdn.com/t/font_1930322_v14tf5qc6l.ttf?t=1630749075649') format('truetype');
+  src: url('//at.alicdn.com/t/font_1930322_2qte29xi0x.woff2?t=1630998583169') format('woff2'),
+       url('//at.alicdn.com/t/font_1930322_2qte29xi0x.woff?t=1630998583169') format('woff'),
+       url('//at.alicdn.com/t/font_1930322_2qte29xi0x.ttf?t=1630998583169') format('truetype');
 }
 .iconfont {
   color: #8a8f93;
@@ -335,6 +335,11 @@ textarea::placeholder {
   height: 550px;
   overflow: auto;
   box-sizing: border-box;
+}
+
+.img-msg {
+  max-width: 200px;
+  max-height: 150px;
 }
 
 
