@@ -1,6 +1,7 @@
-import { parse, stringify } from './../util';
-import store from './../store/store';
-import { TypeMap } from './../util';
+import { parse, stringify } from "./../util";
+import store from "./../store/store";
+import { TypeMap } from "./../util";
+import moment from "moment";
 
 const map = new TypeMap().map;
 
@@ -12,7 +13,12 @@ class Ws {
   initWs() {
     // 连接成功, 开始通讯
     this.ws.onopen = () => {
-      this.send(stringify({ type: map.get('LOGIN') }));
+      const userInfo = parse(localStorage.getItem('userInfo'));
+      if (!userInfo) return;
+
+      const diffTime = moment().diff(moment(userInfo.time), 'hours');
+      const data = diffTime <= 24 ? userInfo : {};
+      this.send(stringify({ type: map.get('LOGIN'), data }));
     }
 
     // 客户端接收服务端发送的消息
@@ -31,6 +37,9 @@ class Ws {
         case 'UPDATE_MESSAGE_LIST':
           updateMEssageList(data);
           break;
+        case 'BROADCAST_MESSAGE':
+          receiveMessage(data);
+          break;
       }
     }
 
@@ -46,7 +55,8 @@ class Ws {
   }
 
   close() {
-    this.send(stringify({ type: map.get('LOGOUT') }));
+    const userInfo = store.getState().updateData.userInfo;
+    this.send(stringify({ type: map.get('LOGOUT'), data: userInfo?.id ? userInfo : undefined }));
     this.ws.close();
   }
 
@@ -58,7 +68,7 @@ class Ws {
 // 获取当前用户信息
 const getUserInfo = (data) => {
   if (data.code !== 0) {
-    const times = store.getState().userInfo?.times;
+    const times = store.getState().updateData.userInfo?.times;
     store.dispatch({
       type: 'USER_INFO',
       userInfo: { times: times ? times + 1 : 1 },
@@ -68,6 +78,11 @@ const getUserInfo = (data) => {
       type: 'USER_INFO',
       userInfo: data.data,
     });
+
+    localStorage.setItem('userInfo', stringify({
+      ...data.data,
+      time: new Date(),
+    }));
   }
 }
 
@@ -92,6 +107,14 @@ const updateMEssageList = (data) => {
   store.dispatch({
     type: 'UPDATE_MESSAGE_LIST',
     messageList: data.data,
+  });
+}
+
+// 接收消息
+const receiveMessage = (data) => {
+  store.dispatch({
+    type: 'UPDATE_MESSAGE',
+    liveMessage: data.data,
   });
 }
 

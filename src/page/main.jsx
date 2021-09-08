@@ -1,27 +1,30 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import moment from 'moment';
-import 'emoji-mart/css/emoji-mart.css';
-import { Picker } from 'emoji-mart';
-import { useSelector } from 'react-redux';
-import { WsContext } from './../App';
-import { stringify, TypeMap, RetinaRegex } from './../util';
-import useOnClickOutside from './../hook/useOnClickOutside';
+import React, { useState, useEffect, useContext, useRef } from "react";
+import moment from "moment";
+import "emoji-mart/css/emoji-mart.css";
+import { Picker } from "emoji-mart";
+import { useSelector, useDispatch } from "react-redux";
+import { WsContext } from "./../App";
+import { stringify, TypeMap, RetinaRegex } from "./../util";
+import useOnClickOutside from "./../hook/useOnClickOutside";
 const map = new TypeMap().map;
 
-const Main = () => {
+const Main = (props) => {
+  const { logoutSuccess } = props;
   const [message, setMessage] = useState('');
   const [showEmojiBox, setShowEmojiBox] = useState(false);
   const [imageValue, setImageValue] = useState('');
+  const [messageQueue, setMessageQueue] = useState([]);
   const ws = useContext(WsContext);
   const messageEnd = useRef(null);
   const inputRef = useRef(null);
   const pickerRef = useRef(null);
   const fileRef = useRef(null);
+  const dispatch = useDispatch();
   const state = useSelector(state => state.updateData);
-  const peopleNum = state.peopleNum;
   const userList = state.userList;
   const messageList = state.messageList;
   const userInfo = state.userInfo;
+  const liveMessage = state.liveMessage;
 
   // 发送消息
   const sendMessage = () => {
@@ -36,6 +39,18 @@ const Main = () => {
     }));
     setMessage('');
   }
+
+  // 接收实时消息
+  useEffect(() => {
+    if (!liveMessage) return;
+    const type = liveMessage.type === 'msg'
+      ? (userInfo.name === liveMessage.userName ? 'myMsg' : 'otherMsg')
+      : liveMessage.type;
+    setMessageQueue(list => [
+      ...list,
+      { ...liveMessage, type },
+    ]);
+  }, [liveMessage])
 
   // 滚动到底部
   const scrollToBottom = () => {
@@ -97,10 +112,20 @@ const Main = () => {
     }
   }
 
+  // 退出登录
+  const layout = () => {
+    ws.send(stringify({
+      type: map.get('LOGOUT'),
+      data: userInfo,
+    }));
+    logoutSuccess();
+    dispatch({ type: 'USER_INFO', userInfo: undefined });
+  }
+
   return (
     <section className="box">
       <div className="menu">
-        <p className="menu-title">在线成员（{peopleNum}）</p>
+        <p className="menu-title">在线成员（{userList.length}）</p>
         <ul className="user-list">
           {
             userList.map(
@@ -117,54 +142,39 @@ const Main = () => {
       </div>
       <div className="conetnt">
         <ul className="header">
-          <li className="header-title">群聊({peopleNum})</li>
-          <li className="layout">登出</li>
+          <li className="header-title">群聊({userList.length})</li>
+          <li className="layout" onClick={layout}>登出</li>
         </ul>
         <ul className="msg" ref={messageEnd}>
           {
-            messageList.map((item, index) => {
+            messageQueue.map((item, index) => {
               const avatar = require(`./../assets/avatar/${item.id}.webp`).default;
+              const isMyMsg = item.type === 'myMsg';
+              const isOtherMsg = item.type === 'otherMsg';
               return <li key={index}>
                 {
                   item.type === 'info' && <p className="info">{item.userName} {item.content}</p>
                 }
                 {
-                  item.type === 'myMsg' && (
-                    <div className="my-msg">
+                  ['myMsg', 'otherMsg'].includes(item.type) && (
+                    <div className={isMyMsg ? 'my-msg' : 'other-msg'}>
+                      { isOtherMsg && <img className="avatar-circle" src={avatar} alt="" /> }
                       <ul>
-                        <li className="time tr">{item.userName} （{moment(item.time).format('MM-DD HH:mm:ss')}）</li>
+                        <li className={isMyMsg ? 'time tr' : 'time tl'}>
+                          {item.userName} （{moment(item.time).format('MM-DD HH:mm:ss')}）
+                        </li>
                         {
                           item.messageType === 'content'
                             ? (
-                              <li className="content my-content">
-                                <p className="triangle my-triangle"></p>
+                              <li className={isMyMsg ? 'content my-content' : 'content'}>
+                                <p className={isMyMsg ? 'triangle my-triangle' : 'triangle'}></p>
                                 <span dangerouslySetInnerHTML={{__html: dealEmoji(item.content)}}></span>
                               </li>
                             )
                             : <img className="img-msg" src={item.content} />
                         }
                       </ul>
-                      <img className="avatar-circle" src={avatar} alt="" />
-                    </div>
-                  )
-                }
-                {
-                  item.type === 'otherMsg' && (
-                    <div className="other-msg">
-                      <img className="avatar-circle" src={avatar} alt="" />
-                      <ul>
-                        <li className="time tl">{item.userName} （{moment(item.time).format('MM-DD HH:mm:ss')}）</li>
-                        {
-                          item.messageType === 'content'
-                            ? (
-                              <li className="content">
-                                <p className="triangle"></p>
-                                <span dangerouslySetInnerHTML={{__html: dealEmoji(item.content)}}></span>
-                              </li>
-                            )
-                            : <img className="img-msg" src={item.content} />
-                        }
-                      </ul>
+                      { isMyMsg && <img className="avatar-circle" src={avatar} alt="" /> }
                     </div>
                   )
                 }

@@ -1,8 +1,8 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { WsContext } from './../App';
-import Message from './../components/Message';
-import { stringify, TypeMap } from './../util';
+import React, { useState, useContext, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { WsContext } from "./../App";
+import Message from "./../components/Message";
+import { stringify, TypeMap } from "./../util";
 const map = new TypeMap().map;
 
 const Login = (props) => {

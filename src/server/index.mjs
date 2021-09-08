@@ -1,6 +1,6 @@
 import express from "express";
 import WebSocket, { WebSocketServer } from "ws";
-import { parse, stringify, TypeMap } from './util.mjs';
+import { parse, stringify, TypeMap } from "./util.mjs";
 
 const wss = new WebSocketServer({ port: 8080 });
 const app = express();
@@ -38,7 +38,7 @@ const updatePeopleNum = () => {
   });
 }
 
-// 广播用户人数
+// 广播用户列表
 const updateUserList = () => {
   broadcast({
     type: 11,
@@ -61,16 +61,64 @@ const updateMessageList = (data, userInfo) => {
   });
 }
 
+// 广播单条消息
+const broadcastMessage = (data, type) => {
+  broadcast({
+    type: 14,
+    data: {
+      ...data,
+      type,
+      time: new Date().getTime(),
+    },
+    code: 0,
+  });
+}
+
+// 发送用户信息
+const sendUserInfo = (ws, userInfo) => {
+  send(ws, {
+    type: 4,
+    data: userInfo,
+    code: 0,
+  });
+}
+
 // 用户登录
-const login = () => {
-  peopleNum += 1;
-  updatePeopleNum();
+const login = (ws, data) => {
+  const userInfo = { id: data.id, name: data.name };
+  if (userList.find(item => item.name === data.name || item.id === data.id)) {
+    sendUserInfo(ws, userInfo);
+    updateUserList();
+  } else {
+    const findAvatarIndex = avatarList.findIndex(item => item === data.id);
+    if (findAvatarIndex >= 0) {
+      sendUserInfo(ws, userInfo);
+      avatarList.splice(findAvatarIndex, 1);
+      userList.push(userInfo);
+      updateUserList();
+
+      messageList.push({
+        type: 'info',
+        id: data.id,
+        content: '进入群聊',
+        userName: data.name,
+        time: new Date().getTime(),
+        messageType: 'content',
+      });
+    }
+  }
+  updateMessageList(messageList, userInfo);
 }
 
 // 用户登出
-const logout = () => {
-  peopleNum -= 1;
-  updatePeopleNum();
+const logout = (ws, data) => {
+  if (!data) return;
+  avatarList.push(data.id);
+  const findIndex = userList.findIndex(item => item.id === data.id);
+  if (findIndex >= 0) {
+    userList.splice(findIndex, 1);
+    updateUserList();
+  }
 }
 
 // 增加用户
@@ -89,12 +137,7 @@ const addUser = (ws, data) => {
     name: data.name,
   };
 
-  send(ws, {
-    type: 4,
-    data: userInfo,
-    code: 0,
-  });
-
+  sendUserInfo(ws, userInfo);
   userList.push(userInfo);
   updateUserList();
 
@@ -109,7 +152,7 @@ const addUser = (ws, data) => {
   updateMessageList(messageList, userInfo);
 }
 
-// 客户端向服务端发送消息
+// 广播消息
 const sendMessage = (ws, data) => {
   messageList.push({
     type: 'myMsg',
@@ -119,7 +162,8 @@ const sendMessage = (ws, data) => {
     time: new Date().getTime(),
     messageType: data.messageType,
   });
-  updateMessageList(messageList, data);
+  broadcastMessage(data, 'msg');
+  // updateMessageList(messageList, data);
 }
 
 wss.on('open', () => {
@@ -136,10 +180,10 @@ wss.on('connection', (ws) => {
 
     switch (TypeMap[type]) {
       case 'LOGIN':
-        login();
+        login(ws, data);
         break;
       case 'LOGOUT':
-        logout();
+        logout(ws, data);
         break;
       case 'ADD_USER':
         addUser(ws, data);
@@ -149,10 +193,6 @@ wss.on('connection', (ws) => {
         break;
     }
   });
-});
-
-app.get('/', (req, res) => {
-  res.send('<h1>服务器地址</h1>');
 });
 
 app.listen(3000, () => {

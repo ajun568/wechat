@@ -3,6 +3,7 @@ const initState = {
   userInfo: undefined,
   userList: [],
   messageList: [],
+  liveMessage: undefined,
 };
 
 const updateData = (state = initState, action) => {
@@ -26,6 +27,11 @@ const updateData = (state = initState, action) => {
       return {
         ...state,
         messageList: action.messageList,
+      }
+    case 'UPDATE_MESSAGE':
+      return {
+        ...state,
+        liveMessage: action.liveMessage,
       }
     default:
       return state;

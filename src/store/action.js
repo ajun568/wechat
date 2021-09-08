@@ -25,3 +25,10 @@ export const updateMessageList = messageList => {
     messageList,
   }
 }
+
+export const updateMessageList = liveMessage => {
+  return {
+    type: 'UPDATE_MESSAGE',
+    liveMessage,
+  }
+}
