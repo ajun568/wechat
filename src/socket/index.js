@@ -13,9 +13,9 @@ class Ws {
   initWs() {
     // 连接成功, 开始通讯
     this.ws.onopen = () => {
+      if (!localStorage.getItem('userInfo')) return;
+      
       const userInfo = parse(localStorage.getItem('userInfo'));
-      if (!userInfo) return;
-
       const diffTime = moment().diff(moment(userInfo.time), 'hours');
       const data = diffTime <= 24 ? userInfo : {};
       this.send(stringify({ type: map.get('LOGIN'), data }));

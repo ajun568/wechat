@@ -137,6 +137,7 @@ const addUser = (ws, data) => {
   userList.push(userInfo);
   updateUserList();
   enterChat(userInfo);
+  updateMessageList(ws);
 }
 
 // 广播消息
@@ -147,7 +148,7 @@ const sendMessage = (ws, data) => {
     time: new Date().getTime(),
   });
   if (messageList.length > 50) {
-    messageList.pop();
+    messageList.shift();
   }
   broadcastMessage(data, 'msg');
 }

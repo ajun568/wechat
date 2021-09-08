@@ -59,6 +59,7 @@ const Main = (props) => {
 
   // 获取历史数据
   useEffect(() => {
+    console.log(messageList)
     if (messageList?.length) {
       setMessageQueue(
         [
@@ -146,6 +147,7 @@ const Main = (props) => {
     }));
     logoutSuccess();
     dispatch({ type: 'USER_INFO', userInfo: undefined });
+    localStorage.setItem('userInfo', '');
   }
 
   return (

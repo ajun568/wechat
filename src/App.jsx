@@ -34,7 +34,13 @@ const App = () => {
   return (
     <Provider store={store}>
       <WsContext.Provider value={ws}>
-        <main className="bg">{ login ? <Main logoutSuccess={logoutSuccess} /> : <Login loginSuccess={loginSuccess} /> }</main>
+        <main className="bg">
+        {
+          login
+            ? <Main logoutSuccess={logoutSuccess} />
+            : <Login loginSuccess={loginSuccess} />
+        }
+        </main>
       </WsContext.Provider>
     </Provider>
   )
