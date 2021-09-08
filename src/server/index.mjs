@@ -8,7 +8,7 @@ const app = express();
 let peopleNum = 0; // 在线人数
 let userList = []; // 用户列表
 let avatarList = [...Array(50).keys()].map(item => item + 1); // 可选头像列表
-let messageList = []; // 消息信息
+let messageList = []; // 消息列表 可查看历史50条消息
 
 // send方法
 const send = (ws, data) => {
@@ -48,15 +48,10 @@ const updateUserList = () => {
 }
 
 // 广播消息列表
-const updateMessageList = (data, userInfo) => {
-  broadcast({
+const updateMessageList = (ws) => {
+  send(ws, {
     type: 12,
-    data: data.map(item => {
-      if (!['myMsg', 'otherMsg'].includes(item.type)) return item;
-      return item.id === userInfo.id
-        ? { ...item, type: 'myMsg' }
-        : { ...item, type: 'otherMsg' };
-    }),
+    data: messageList,
     code: 0,
   });
 }
@@ -83,6 +78,15 @@ const sendUserInfo = (ws, userInfo) => {
   });
 }
 
+const enterChat = (userInfo) => {
+  const data = {
+    ...userInfo,
+    content: '进入群聊',
+    messageType: 'content',
+  }
+  broadcastMessage(data, 'info');
+}
+
 // 用户登录
 const login = (ws, data) => {
   const userInfo = { id: data.id, name: data.name };
@@ -96,18 +100,10 @@ const login = (ws, data) => {
       avatarList.splice(findAvatarIndex, 1);
       userList.push(userInfo);
       updateUserList();
-
-      messageList.push({
-        type: 'info',
-        id: data.id,
-        content: '进入群聊',
-        userName: data.name,
-        time: new Date().getTime(),
-        messageType: 'content',
-      });
+      enterChat(userInfo);
     }
   }
-  updateMessageList(messageList, userInfo);
+  updateMessageList(ws);
 }
 
 // 用户登出
@@ -140,30 +136,20 @@ const addUser = (ws, data) => {
   sendUserInfo(ws, userInfo);
   userList.push(userInfo);
   updateUserList();
-
-  messageList.push({
-    type: 'info',
-    id: userInfo.id,
-    content: '进入群聊',
-    userName: userInfo.name,
-    time: new Date().getTime(),
-    messageType: 'content',
-  });
-  updateMessageList(messageList, userInfo);
+  enterChat(userInfo);
 }
 
 // 广播消息
 const sendMessage = (ws, data) => {
   messageList.push({
-    type: 'myMsg',
-    id: data.id,
-    content: data.content,
-    userName: data.userName,
+    type: 'msg',
+    ...data,
     time: new Date().getTime(),
-    messageType: data.messageType,
   });
+  if (messageList.length > 50) {
+    messageList.pop();
+  }
   broadcastMessage(data, 'msg');
-  // updateMessageList(messageList, data);
 }
 
 wss.on('open', () => {

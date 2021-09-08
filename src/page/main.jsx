@@ -48,9 +48,35 @@ const Main = (props) => {
       : liveMessage.type;
     setMessageQueue(list => [
       ...list,
-      { ...liveMessage, type },
+      { ...liveMessage, type, userName: liveMessage.name },
     ]);
-  }, [liveMessage])
+    if (liveMessage.messageType === 'image') {
+      const image = new Image();
+      image.src = liveMessage.content;
+      image.onload = () => scrollToBottom();
+    }
+  }, [liveMessage, userInfo])
+
+  // 获取历史数据
+  useEffect(() => {
+    if (messageList?.length) {
+      setMessageQueue(
+        [
+          ...messageList.map(item => {
+            const type = item.type === 'msg'
+              ? (userInfo.name === item.userName ? 'myMsg' : 'otherMsg')
+              : item.type;
+            return {  ...item, type };
+          }),
+          {
+            ...userInfo,
+            content: '仅可查看50条历史消息',
+            type: 'info',
+          }
+        ]
+      );
+    }
+  }, [messageList, userInfo])
 
   // 滚动到底部
   const scrollToBottom = () => {
@@ -59,7 +85,7 @@ const Main = (props) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messageList])
+  }, [messageQueue])
 
   // 聚焦input
   const focus = () => {
@@ -171,7 +197,7 @@ const Main = (props) => {
                                 <span dangerouslySetInnerHTML={{__html: dealEmoji(item.content)}}></span>
                               </li>
                             )
-                            : <img className="img-msg" src={item.content} />
+                            : <img className="img-msg" src={item.content} alt="" />
                         }
                       </ul>
                       { isMyMsg && <img className="avatar-circle" src={avatar} alt="" /> }

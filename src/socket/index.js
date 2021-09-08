@@ -40,6 +40,8 @@ class Ws {
         case 'BROADCAST_MESSAGE':
           receiveMessage(data);
           break;
+        default:
+          break;
       }
     }
 
