@@ -12,6 +12,9 @@ const Type = {
   12: 'UPDATE_MESSAGE_LIST',
   13: 'SEND_MESSAGE',
   14: 'BROADCAST_MESSAGE',
+
+  20: 'PING',
+  21: 'PONG',
 };
 
 export class TypeMap extends Map {

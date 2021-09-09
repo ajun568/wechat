@@ -8,13 +8,26 @@ const map = new TypeMap().map;
 class Ws {
   constructor (url) {
     this.ws = new WebSocket(url);
+
+    // 断线重连
+    this.url = url;
+    this.lockReconnect = false;
+    this.timer = null;
+    this.limit = 0;
+
+    // 心跳检测
+    this.heartbeatTimer = null;
+    this.receiveTimer = null;
   }
 
   initWs() {
     // 连接成功, 开始通讯
     this.ws.onopen = () => {
-      if (!localStorage.getItem('userInfo')) return;
+      this.checkHeartbeat();
       
+      this.limit = 0;
+      if (!localStorage.getItem('userInfo')) return;
+
       const userInfo = parse(localStorage.getItem('userInfo'));
       const diffTime = moment().diff(moment(userInfo.time), 'hours');
       const data = diffTime <= 24 ? userInfo : {};
@@ -40,6 +53,9 @@ class Ws {
         case 'BROADCAST_MESSAGE':
           receiveMessage(data);
           break;
+        case 'PONG':
+          this.resetHeartbeat();
+          break;
         default:
           break;
       }
@@ -47,12 +63,14 @@ class Ws {
 
     // 连接关闭后的回调函数
     this.ws.onclose = (event) => {
-      console.log('已断开连接', event)
+      console.log('已断开连接', event);
+      this.reconnect();
     }
 
     // 捕获错误
     this.ws.onerror = () => {
       console.log('出错了');
+      this.reconnect();
     }
   }
 
@@ -63,7 +81,39 @@ class Ws {
   }
 
   send(data) {
-    this.ws.send(data);
+    if (this.ws.readyState === this.ws.OPEN) {
+      this.ws.send(data);
+    }
+  }
+
+  reconnect() {
+    if (this.lockReconnect) return;
+    this.lockReconnect = true;
+    
+    clearTimeout(this.timer);
+    if (this.limit < 12) {
+      this.timer = setTimeout(() => {
+        this.ws = new WebSocket(this.url);
+        this.initWs();
+        this.lockReconnect = false;
+        this.limit += 1;
+      }, 5000)
+    }
+  }
+
+  checkHeartbeat() {
+    this.ws.heartbeatTimer = setTimeout(() => {
+      this.send(stringify({ type: map.get('PING'), data: 'ping' }));
+      this.ws.receiveTimer = setTimeout(() => {
+        this.ws.close();
+      }, 20000);
+    }, 20000);
+  }
+
+  resetHeartbeat() {
+    this.ws.heartbeatTimer && clearTimeout(this.ws.heartbeatTimer);
+    this.ws.receiveTimer && clearTimeout(this.ws.receiveTimer);
+    this.checkHeartbeat();
   }
 }
 

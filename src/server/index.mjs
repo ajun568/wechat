@@ -153,6 +153,15 @@ const sendMessage = (ws, data) => {
   broadcastMessage(data, 'msg');
 }
 
+// 心跳检查
+const heartbeat = (ws) => {
+  send(ws, {
+    type: 21,
+    data: 'pong',
+    code: 0,
+  });
+}
+
 wss.on('open', () => {
   console.log('connected');
 });
@@ -177,6 +186,11 @@ wss.on('connection', (ws) => {
         break;
       case 'SEND_MESSAGE':
         sendMessage(ws, data);
+        break;
+      case 'PING':
+        heartbeat(ws);
+        break;
+      default:
         break;
     }
   });

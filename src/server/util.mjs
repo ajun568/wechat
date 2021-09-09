@@ -12,4 +12,7 @@ export const TypeMap = {
   12: 'UPDATE_MESSAGE_LIST', // 更新消息列表
   13: 'SEND_MESSAGE', // 客户端向服务端发送消息
   14: 'BROADCAST_MESSAGE', // 服务端向客户端发送单条消息
+
+  20: 'PING', // 心跳 client -> server
+  21: 'PONG', // 心跳 server -> client
 }
