@@ -42,13 +42,14 @@ const Main = (props) => {
 
   // 接收实时消息
   useEffect(() => {
+    console.log(liveMessage)
     if (!liveMessage) return;
     const type = liveMessage.type === 'msg'
       ? (userInfo.name === liveMessage.userName ? 'myMsg' : 'otherMsg')
       : liveMessage.type;
     setMessageQueue(list => [
       ...list,
-      { ...liveMessage, type, userName: liveMessage.name },
+      { ...liveMessage, type },
     ]);
     if (liveMessage.messageType === 'image') {
       const image = new Image();

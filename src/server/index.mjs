@@ -80,7 +80,8 @@ const sendUserInfo = (ws, userInfo) => {
 
 const enterChat = (userInfo) => {
   const data = {
-    ...userInfo,
+    id: userInfo.id,
+    userName: userInfo.name,
     content: '进入群聊',
     messageType: 'content',
   }
