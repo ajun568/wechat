@@ -8,7 +8,7 @@ import Login from "./page/login";
 export const DEV = process.env.NODE_ENV !== 'production';
 export const WsContext = createContext('');
 
-const ws = new Ws(DEV ? 'ws://localhost:8080' : 'wss://api_chat.deeruby.com');
+const ws = new Ws(DEV ? 'ws://localhost:8080' : 'wss://api.chat.deeruby.com');
 const App = () => {
   const [login, setLogin] = useState(false);
 
