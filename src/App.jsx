@@ -4,10 +4,11 @@ import store from "./store/store";
 import Ws from "./socket";
 import Main from "./page/main";
 import Login from "./page/login";
-const ws = new Ws('ws://localhost:8080');
 
+export const DEV = process.env.NODE_ENV !== 'production';
 export const WsContext = createContext('');
- 
+
+const ws = new Ws(DEV ? 'ws://localhost:8080' : 'wss://api_chat.deeruby.com');
 const App = () => {
   const [login, setLogin] = useState(false);
 
