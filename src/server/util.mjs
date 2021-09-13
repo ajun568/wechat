@@ -15,4 +15,6 @@ export const TypeMap = {
 
   20: 'PING', // 心跳 client -> server
   21: 'PONG', // 心跳 server -> client
+  23: 'TASK', // 定时任务, 刷新用户列表
+  24: 'REPLY', // 客户端回复定时任务
 }

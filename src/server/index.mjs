@@ -1,5 +1,6 @@
 import express from "express";
 import WebSocket, { WebSocketServer } from "ws";
+import schedule from "node-schedule";
 import { parse, stringify, TypeMap } from "./util.mjs";
 
 const wss = new WebSocketServer({ port: 8080 });
@@ -15,11 +16,6 @@ const send = (ws, data) => {
   ws.send(stringify(data));
 }
 
-// 随机选取并删除数组元素
-const rendomArr = (arr) => {
-  return arr.splice(Math.floor(Math.random() * arr.length), 1);
-}
-
 // 广播
 const broadcast = (data) => {
   wss.clients.forEach(client => {
@@ -27,6 +23,11 @@ const broadcast = (data) => {
       send(client, data);
     }
   });
+}
+
+// 随机选取并删除数组元素
+const rendomArr = (arr) => {
+  return arr.splice(Math.floor(Math.random() * arr.length), 1);
 }
 
 // 广播在线人数
@@ -78,6 +79,7 @@ const sendUserInfo = (ws, userInfo) => {
   });
 }
 
+// 进入群聊
 const enterChat = (userInfo) => {
   const data = {
     id: userInfo.id,
@@ -91,19 +93,17 @@ const enterChat = (userInfo) => {
 // 用户登录
 const login = (ws, data) => {
   const userInfo = { id: data.id, name: data.name };
-  if (userList.find(item => item.name === data.name || item.id === data.id)) {
-    sendUserInfo(ws, userInfo);
-    updateUserList();
-  } else {
+  if (!userList.find(item => item.name === data.name)) {
     const findAvatarIndex = avatarList.findIndex(item => item === data.id);
     if (findAvatarIndex >= 0) {
-      sendUserInfo(ws, userInfo);
       avatarList.splice(findAvatarIndex, 1);
       userList.push(userInfo);
-      updateUserList();
       enterChat(userInfo);
     }
   }
+
+  sendUserInfo(ws, userInfo);
+  updateUserList();
   updateMessageList(ws);
 }
 
@@ -163,6 +163,19 @@ const heartbeat = (ws) => {
   });
 }
 
+// 定时任务
+const scheduleCronstyle = () => {
+  schedule.scheduleJob('0 0 * * * *', () => {
+    userList = [];
+    broadcast({
+      type: 23,
+      data: 'timed task',
+      code: 0,
+    });
+  }); 
+}
+scheduleCronstyle();
+
 wss.on('open', () => {
   console.log('connected');
 });
@@ -190,6 +203,11 @@ wss.on('connection', (ws) => {
         break;
       case 'PING':
         heartbeat(ws);
+        break;
+      case 'REPLY':
+        if (!data) return;
+        if (!userList.find(item => item.name === data.name)) userList.push(data);
+        updateUserList();
         break;
       default:
         break;

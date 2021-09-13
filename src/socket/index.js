@@ -56,6 +56,9 @@ class Ws {
         case 'PONG':
           this.resetHeartbeat();
           break;
+        case 'TASK':
+          this.timedTask();
+          break;
         default:
           break;
       }
@@ -75,8 +78,7 @@ class Ws {
   }
 
   close() {
-    const userInfo = store.getState().updateData.userInfo;
-    this.send(stringify({ type: map.get('LOGOUT'), data: userInfo?.id ? userInfo : undefined }));
+    this.send(stringify({ type: map.get('LOGOUT'), data: this.getUserInfo() }));
     this.ws.close();
   }
 
@@ -115,12 +117,22 @@ class Ws {
     this.ws.receiveTimer && clearTimeout(this.ws.receiveTimer);
     this.checkHeartbeat();
   }
+
+  timedTask() {
+    this.send(stringify({ type: map.get('REPLY'), data: this.getUserInfo() }));
+  }
+
+  getUserInfo() {
+    const userInfo = store.getState().updateData.userInfo;
+    return userInfo?.id ? userInfo : undefined;
+  }
 }
 
 // 获取当前用户信息
 const getUserInfo = (data) => {
   if (data.code !== 0) {
-    const times = store.getState().updateData.userInfo?.times;
+    const userInfo = store.getState().updateData.userInfo;
+    const times = userInfo?.times;
     store.dispatch({
       type: 'USER_INFO',
       userInfo: { times: times ? times + 1 : 1 },

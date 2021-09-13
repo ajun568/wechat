@@ -9,7 +9,7 @@ const useOnClickOutside = (ref, callback) => {
     }
     window.addEventListener('click', handler);
 
-    return () => window.removeEventListener('click', handler)
+    return () => window.removeEventListener('click', handler);
   }, [callback, ref]);
 }
 

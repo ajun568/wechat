@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import moment from "moment";
 import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
-import { useSelector, useDispatch } from "react-redux";
+import useOnClickOutside from "./../hook/useOnClickOutside";
 import { WsContext } from "./../App";
 import { stringify, TypeMap, RetinaRegex } from "./../util";
-import useOnClickOutside from "./../hook/useOnClickOutside";
 const map = new TypeMap().map;
 
 const Main = (props) => {
@@ -42,7 +42,6 @@ const Main = (props) => {
 
   // 接收实时消息
   useEffect(() => {
-    console.log(liveMessage)
     if (!liveMessage) return;
     const type = liveMessage.type === 'msg'
       ? (userInfo.name === liveMessage.userName ? 'myMsg' : 'otherMsg')
@@ -125,7 +124,7 @@ const Main = (props) => {
 
     const fileReader = new FileReader();
     fileReader.readAsDataURL(files[0]);
-    setImageValue(''); // 清空图片, 使同名图片可继续上传
+    setImageValue('');
     fileReader.onload = () => {
       ws.send(stringify({
         type: map.get('SEND_MESSAGE'),

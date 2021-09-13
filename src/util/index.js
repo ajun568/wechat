@@ -15,6 +15,8 @@ const Type = {
 
   20: 'PING',
   21: 'PONG',
+  23: 'TASK',
+  24: 'REPLY',
 };
 
 export class TypeMap extends Map {
