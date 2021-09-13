@@ -55,7 +55,7 @@ const Main = (props) => {
       image.src = liveMessage.content;
       image.onload = () => scrollToBottom();
     }
-  }, [liveMessage, userInfo])
+  }, [liveMessage])
 
   // 获取历史数据
   useEffect(() => {
